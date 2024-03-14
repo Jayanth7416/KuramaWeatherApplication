@@ -1,0 +1,28 @@
+<!-- res/layout/activity_settings.xml -->
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    tools:context=".SettingsActivity">
+
+    <RadioGroup
+        android:id="@+id/themeRadioGroup"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_centerInParent="true"
+        android:orientation="vertical">
+
+        <RadioButton
+            android:id="@+id/radioLightTheme"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Light Theme" />
+
+        <RadioButton
+            android:id="@+id/radioDarkTheme"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Dark Theme" />
+    </RadioGroup>
+
+</RelativeLayout>

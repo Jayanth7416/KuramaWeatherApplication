@@ -1,0 +1,82 @@
+<?xml version="1.0" encoding="utf-8"?>
+<RelativeLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    tools:context=".CityListActivity">
+
+    <!-- Search bar (EditText) -->
+    <EditText
+        android:id="@+id/searchCityEditText"
+        android:layout_width="330dp"
+        android:layout_height="wrap_content"
+        android:hint="Enter a city name"
+        android:layout_marginTop="16dp"
+        android:layout_marginStart="16dp"
+        android:layout_marginEnd="16dp" />
+
+    <!-- Location symbol button (ImageButton) -->
+
+    <!-- Add City button -->
+
+    <!-- Container for city tiles -->
+    <ImageButton
+        android:id="@+id/locationButton"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_alignTop="@id/searchCityEditText"
+        android:layout_marginStart="-6dp"
+        android:layout_marginTop="0dp"
+        android:layout_toEndOf="@id/searchCityEditText"
+        android:contentDescription="Current Location"
+        android:src="@drawable/currentlocation" />
+
+    <ImageButton
+        android:id="@+id/microphoneId"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_alignTop="@+id/cityRadioGroup"
+        android:layout_alignParentStart="true"
+        android:layout_alignParentEnd="true"
+        android:layout_marginStart="283dp"
+        android:layout_marginTop="-63dp"
+        android:layout_marginEnd="81dp"
+        android:layout_marginBottom="5dp"
+        android:src="@drawable/mic_24px" />
+
+    <Button
+        android:id="@+id/addCityButton"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_below="@id/searchCityEditText"
+        android:layout_alignParentStart="true"
+        android:layout_alignParentEnd="true"
+        android:layout_marginStart="150dp"
+        android:layout_marginTop="7dp"
+        android:layout_marginEnd="150dp"
+        android:gravity="center"
+        android:text="Add City" />
+
+    <RadioGroup
+        android:id="@+id/cityRadioGroup"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="vertical"
+        android:layout_below="@id/addCityButton"
+        android:layout_marginTop="16dp"
+        android:layout_marginStart="16dp"
+        android:layout_marginEnd="16dp">
+    </RadioGroup>
+
+    <!-- Fragment container -->
+    <FrameLayout
+        android:id="@+id/fragment_container"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:layout_below="@id/cityRadioGroup"
+        android:layout_marginTop="16dp"
+        android:layout_marginStart="16dp"
+        android:layout_marginEnd="16dp"/>
+</RelativeLayout>

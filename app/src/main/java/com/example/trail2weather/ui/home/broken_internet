@@ -1,0 +1,119 @@
+// Import necessary classes
+import android.content.Context
+import android.net.ConnectivityManager
+import android.net.NetworkCapabilities
+import android.os.Build
+import android.widget.Toast
+
+// Inside your Fragment class
+class HomeFragment : Fragment(), PopupMenu.OnMenuItemClickListener {
+
+    // ... (existing code)
+
+    private fun isNetworkAvailable(): Boolean {
+        val connectivityManager =
+            requireContext().getSystemService(Context.CONNECTIVITY_SERVICE) as ConnectivityManager
+
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
+            val networkCapabilities = connectivityManager.activeNetwork ?: return false
+            val actNw =
+                connectivityManager.getNetworkCapabilities(networkCapabilities) ?: return false
+
+            return when {
+                actNw.hasTransport(NetworkCapabilities.TRANSPORT_WIFI) -> true
+                actNw.hasTransport(NetworkCapabilities.TRANSPORT_CELLULAR) -> true
+                else -> false
+            }
+        } else {
+            val networkInfo = connectivityManager.activeNetworkInfo
+            return networkInfo != null && networkInfo.isConnected
+        }
+    }
+
+    private fun handleNetworkUnavailable() {
+        // You can customize this method to show a message or take appropriate action
+        Toast.makeText(requireContext(), "Internet connection is not available", Toast.LENGTH_SHORT).show()
+    }
+
+    // Modify your network request functions to check for network availability
+    private fun getLatLngFromCityName(cityName: String) {
+        if (isNetworkAvailable()) {
+            // Your existing network request code
+        } else {
+            handleNetworkUnavailable()
+        }
+    }
+
+    private fun fetchWeatherData(latitude: Double, longitude: Double) {
+        if (isNetworkAvailable()) {
+            val apiKey = "AIzaSyB6z7VRf4XnokHZKVOH_2w6KgICy7NNA8I"  // Replace with your actual API key
+                    val geocodingApiUrl = "https://maps.googleapis.com/maps/api/geocode/"
+
+                    val retrofit = Retrofit.Builder()
+                        .baseUrl(geocodingApiUrl)
+                        .addConverterFactory(GsonConverterFactory.create())
+                        .build()
+
+                    val geocodingService = retrofit.create(GeocodingService::class.java)
+
+                    val call = geocodingService.getLatLng(cityName, apiKey)
+
+                    call.enqueue(object : Callback<GeocodingResponse> {
+                        override fun onResponse(call: Call<GeocodingResponse>, response: Response<GeocodingResponse>) {
+                            if (response.isSuccessful) {
+                                val geocodingResponse = response.body()
+
+                                // Check if the response contains results
+                                if (!geocodingResponse?.results.isNullOrEmpty()) {
+                                    val location = geocodingResponse!!.results[0].geometry.location
+
+                                    // Use the obtained latitude and longitude
+                                    val latitude = location.lat
+                                    val longitude = location.lng
+
+                                    // Do something with latitude and longitude
+                                    Log.d("Geocoding", "Latitude: $latitude, Longitude: $longitude")
+
+                                    // Fetch weather data and update UI
+                                    fetchWeatherData(latitude, longitude)
+                                    // Fetch Hourly data and update UI
+                                    fetchOpenMeteoHourlyForecast(latitude, longitude)
+                                    // Fetch current location data using latitude nad longitude
+                                    // fetchCurrentLocation()
+                                    // Fetch Weekly data and update UI
+                                    fetchOpenMeteoWeeklyForecast(latitude, longitude)
+                                } else {
+                                    // Handle no results found for the given city
+                                }
+                            }
+                        }
+
+                        override fun onFailure(call: Call<GeocodingResponse>, t: Throwable) {
+                            // Handle failure
+                        }
+                    })
+
+            // Your existing network request code
+        } else {
+            handleNetworkUnavailable()
+        }
+    }
+
+    private fun fetchOpenMeteoHourlyForecast(latitude: Double, longitude: Double) {
+        if (isNetworkAvailable()) {
+            // Your existing network request code
+        } else {
+            handleNetworkUnavailable()
+        }
+    }
+
+    private fun fetchOpenMeteoWeeklyForecast(latitude: Double, longitude: Double) {
+        if (isNetworkAvailable()) {
+            // Your existing network request code
+        } else {
+            handleNetworkUnavailable()
+        }
+    }
+
+    // ... (existing code)
+}

@@ -1,0 +1,14 @@
+<!-- res/menu/app_bar_menu.xml -->
+<menu
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto">
+
+    <!-- Other menu items if any -->
+
+    <item
+        android:id="@+id/action_image_button"
+        android:icon="@drawable/currentlocation"
+        android:title="Image"
+        app:showAsAction="always" />
+
+</menu>

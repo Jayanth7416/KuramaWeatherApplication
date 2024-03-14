@@ -1,0 +1,17 @@
+<resources>
+    <string name="app_name">KuramaWeather</string>
+    <string name="navigation_drawer_open">Open navigation drawer</string>
+    <string name="navigation_drawer_close">Close navigation drawer</string>
+    <string name="nav_header_title">Android Studio</string>
+    <string name="nav_header_subtitle">UserName</string>
+    <string name="nav_header_desc">Navigation header</string>
+    <string name="action_settings">Settings</string>
+    <string name="broken_connection_message">No internet connection available. Please check your connection and try again.</string>
+    <string name="broken_connection_description">Broken Connection</string>
+    <string name="menu_home">Location</string>
+    <string name="menu_gallery">Add Location</string>
+    <string name="menu_logout">Logout</string>
+    <string name="refresh">Refresh</string>
+    <string name="submit">Report</string>
+    <string name="aboutme">Welcome to KuramaWeather - Your Weather Companion!\nAt KuramaWeather, we believe in simplifying your daily life by providing accurate and personalized weather information at your fingertips. Our mission is to empower you with the knowledge you need to make informed decisions, whether it\'s planning your day, preparing for a trip, or staying safe during unpredictable weather events.\n\nOur Commitment to Accuracy\nWe understand the importance of reliable weather forecasts. That\'s why we leverage state-of-the-art technology and partner with leading meteorological agencies to deliver hyper-local and up-to-date weather data. Our commitment to accuracy ensures that you can trust the information you receive from KuramaWeather.\n\nUser-Centric Design\nWe know that everyone interacts with weather apps differently, so we\'ve designed our app with you in mind. The user interface is intuitive, allowing you to effortlessly navigate through various features. Whether you\'re a weather enthusiast seeking detailed information or someone who just wants a quick glance at the forecast, KuramaWeather has got you covered.\n\nInnovation in Weather Technology\nStay ahead of the curve with KuramaWeather. We\'re dedicated to integrating cutting-edge weather technology to enhance your experience. From real-time satellite imagery to advanced forecasting algorithms, we strive to bring you the latest advancements in meteorology to keep you informed and prepared.\n\nJoin the KuramaWeather Community\nBecome a part of our growing community of weather enthusiasts. Share your weather experiences, tips, and insights with fellow users. Connect with us on social media, participate in discussions, and let us know how KuramaWeather has made a difference in your daily life.\n\nThank you for choosing KuramaWeather as your go-to weather companion. We\'re excited to be part of your journey, rain or shine!</string>
+</resources>

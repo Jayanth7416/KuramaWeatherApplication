@@ -1,0 +1,445 @@
+package com.example.trail2weather.ui.home
+
+import android.content.Context
+import android.content.SharedPreferences
+import android.location.Location
+import android.location.LocationManager
+import android.net.ConnectivityManager
+import android.net.NetworkCapabilities
+import android.os.Build
+import android.os.Bundle
+import android.util.Log
+import android.view.LayoutInflater
+import android.view.View
+import android.view.ViewGroup
+import androidx.core.content.ContextCompat
+import androidx.fragment.app.Fragment
+import androidx.lifecycle.ViewModelProvider
+import androidx.recyclerview.widget.LinearLayoutManager
+import com.bumptech.glide.Glide
+import com.example.trail2weather.CityDatabaseHelper
+import com.example.trail2weather.R
+import com.example.trail2weather.databinding.FragmentHomeBinding
+import com.google.android.gms.location.LocationServices
+import retrofit2.Call
+import retrofit2.Callback
+import retrofit2.Response
+import android.view.Gravity
+import android.view.MenuItem
+import android.widget.PopupMenu
+import android.widget.Toast
+import retrofit2.Retrofit
+import retrofit2.converter.gson.GsonConverterFactory
+import java.time.Instant
+import java.time.LocalDateTime
+import java.time.ZoneId
+import java.time.ZoneOffset
+import java.time.format.DateTimeFormatter
+
+class HomeFragment : Fragment(), PopupMenu.OnMenuItemClickListener {
+
+    private var _binding: FragmentHomeBinding? = null
+    private val binding get() = _binding!!
+    private lateinit var cityList: List<String>
+    private lateinit var viewModel: HomeViewModel
+    private var latitude: Double = 0.0
+    private var longitude: Double = 0.0
+    private lateinit var sharedPreferences: SharedPreferences
+
+    override fun onCreateView(
+        inflater: LayoutInflater,
+        container: ViewGroup?,
+        savedInstanceState: Bundle?
+    ): View {
+        viewModel = ViewModelProvider(this).get(HomeViewModel::class.java)
+
+        _binding = FragmentHomeBinding.inflate(inflater, container, false)
+        val root: View = binding.root
+
+        // Initialize SharedPreferences
+        sharedPreferences = requireContext().getSharedPreferences("MyPreferences", Context.MODE_PRIVATE)
+
+        // Fetch list of cities in our database
+        cityList = getCityListFromDatabase()
+
+        // Display the city list when cityListView is clicked
+        binding.cityListView.setOnClickListener { showCityListPopup() }
+
+        // Fetch the selected city from SharedPreferences
+        val primaryCityName = sharedPreferences.getString("selectedCity", "Syracuse") ?: "Syracuse"
+        getLatLngFromCityName(primaryCityName)
+
+        // Call fetchCurrentLocation to ensure Syracuse weather is loaded on launch
+        fetchCurrentLocation()
+
+        val arguments = arguments
+        if (arguments != null && arguments.containsKey("cityName")) {
+            val cityName = arguments.getString("cityName")
+            if (cityName != null) {
+                getLatLngFromCityName(cityName)
+            }
+        }
+
+
+        return root
+    }
+
+    private fun showCityListPopup() {
+        val popup = PopupMenu(requireContext(), binding.cityListView, Gravity.CENTER_HORIZONTAL or Gravity.CENTER_VERTICAL, 0, R.style.PopupMenuStyle)
+        popup.menuInflater.inflate(R.menu.city_list_menu, popup.menu)
+
+        // Add cities to the popup menu dynamically
+        for (city in cityList) {
+            popup.menu.add(city)
+        }
+
+        // Set a click listener for the menu items
+        popup.setOnMenuItemClickListener(this)
+
+        // Show the popup menu
+        popup.show()
+    }
+
+    override fun onMenuItemClick(item: MenuItem): Boolean {
+        // Handle the selected city here
+        Toast.makeText(requireContext(), "Selected city: ${item.title}", Toast.LENGTH_SHORT).show()
+
+        val cityName1 = item.title.toString()
+
+        // Save the selected city to SharedPreferences immediately
+        saveSelectedCity(cityName1)
+
+        getLatLngFromCityName(cityName1)
+        return true
+    }
+
+    private fun saveSelectedCity(cityName: String) {
+        // Save the selected city to SharedPreferences
+        sharedPreferences.edit().putString("selectedCity", cityName).apply()
+    }
+
+    override fun onSaveInstanceState(outState: Bundle) {
+        // Save your fragment's state here
+        outState.putDouble("latitude", latitude)
+        outState.putDouble("longitude", longitude)
+        super.onSaveInstanceState(outState)
+    }
+
+    override fun onViewStateRestored(savedInstanceState: Bundle?) {
+        super.onViewStateRestored(savedInstanceState)
+        // Restore your fragment's state here
+        if (savedInstanceState != null) {
+            latitude = savedInstanceState.getDouble("latitude", 0.0)
+            longitude = savedInstanceState.getDouble("longitude", 0.0)
+            // Restore any other necessary data
+        }
+    }
+
+    private fun getLatLngFromCityName(cityName: String) {
+        val apiKey = "AIzaSyB6z7VRf4XnokHZKVOH_2w6KgICy7NNA8I"  // Replace with your actual API key
+        val geocodingApiUrl = "https://maps.googleapis.com/maps/api/geocode/"
+
+        val retrofit = Retrofit.Builder()
+            .baseUrl(geocodingApiUrl)
+            .addConverterFactory(GsonConverterFactory.create())
+            .build()
+
+        val geocodingService = retrofit.create(GeocodingService::class.java)
+
+        val call = geocodingService.getLatLng(cityName, apiKey)
+
+        call.enqueue(object : Callback<GeocodingResponse> {
+            override fun onResponse(call: Call<GeocodingResponse>, response: Response<GeocodingResponse>) {
+                if (response.isSuccessful) {
+                    val geocodingResponse = response.body()
+
+                    // Check if the response contains results
+                    if (!geocodingResponse?.results.isNullOrEmpty()) {
+                        val location = geocodingResponse!!.results[0].geometry.location
+
+                        // Use the obtained latitude and longitude
+                        val latitude = location.lat
+                        val longitude = location.lng
+
+                        // Do something with latitude and longitude
+                        Log.d("Geocoding", "Latitude: $latitude, Longitude: $longitude")
+
+                        // Fetch weather data and update UI
+                        fetchWeatherData(latitude, longitude)
+                        // Fetch Hourly data and update UI
+                        fetchOpenMeteoHourlyForecast(latitude, longitude)
+                        // Fetch current location data using latitude nad longitude
+                        // fetchCurrentLocation()
+                        // Fetch Weekly data and update UI
+                        fetchOpenMeteoWeeklyForecast(latitude, longitude)
+                    } else {
+                        // Handle no results found for the given city
+                    }
+                }
+            }
+
+            override fun onFailure(call: Call<GeocodingResponse>, t: Throwable) {
+                // Handle failure
+            }
+        })
+    }
+
+    private fun getCityListFromDatabase(): List<String> {
+        val dbHelper = CityDatabaseHelper(requireContext())
+        return dbHelper.getAllCities()
+    }
+
+    override fun onDestroyView() {
+        super.onDestroyView()
+        _binding = null
+    }
+
+    private fun isNetworkAvailable(): Boolean {
+        val connectivityManager =
+            requireContext().getSystemService(Context.CONNECTIVITY_SERVICE) as ConnectivityManager
+
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
+            val networkCapabilities = connectivityManager.activeNetwork ?: return false
+            val actNw =
+                connectivityManager.getNetworkCapabilities(networkCapabilities) ?: return false
+
+            return when {
+                actNw.hasTransport(NetworkCapabilities.TRANSPORT_WIFI) -> true
+                actNw.hasTransport(NetworkCapabilities.TRANSPORT_CELLULAR) -> true
+                else -> false
+            }
+        } else {
+            val networkInfo = connectivityManager.activeNetworkInfo
+            return networkInfo != null && networkInfo.isConnected
+        }
+    }
+
+    private fun handleNetworkUnavailable() {
+        // You can customize this method to show a message or take appropriate action
+        Toast.makeText(requireContext(), "Internet connection is not available", Toast.LENGTH_SHORT).show()
+    }
+
+
+
+    private fun fetchCurrentLocation() {
+        val locationManager = context?.let { ContextCompat.getSystemService(it, LocationManager::class.java) }
+
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
+            if (context?.let { ContextCompat.checkSelfPermission(it, android.Manifest.permission.ACCESS_FINE_LOCATION) } ==
+                android.content.pm.PackageManager.PERMISSION_GRANTED
+            ) {
+                val fusedLocationClient = LocationServices.getFusedLocationProviderClient(requireActivity())
+                fusedLocationClient.lastLocation.addOnSuccessListener { location: Location? ->
+                    location?.let {
+                        // Use the obtained latitude and longitude
+                        latitude = it.latitude
+                        longitude = it.longitude
+
+                        // Fetch weather data using the obtained location
+                        fetchWeatherData(latitude, longitude)
+                        // Fetch Hourly data and update UI
+                        fetchOpenMeteoHourlyForecast(latitude, longitude)
+                        fetchOpenMeteoWeeklyForecast(latitude, longitude)
+                    }
+                }
+            }
+        } else {
+            // For devices with SDK < 23, use the deprecated method
+            val location = locationManager?.getLastKnownLocation(LocationManager.NETWORK_PROVIDER)
+            location?.let {
+                // Use the obtained latitude and longitude
+                latitude = it.latitude
+                longitude = it.longitude
+
+                // Fetch weather data using the obtained location
+                fetchWeatherData(latitude, longitude)
+                // Fetch Hourly data and update UI
+                fetchOpenMeteoHourlyForecast(latitude, longitude)
+                fetchOpenMeteoWeeklyForecast(latitude, longitude)
+            }
+        }
+    }
+
+    private fun fetchWeatherData(latitude: Double, longitude: Double) {
+        val retrofit = Retrofit.Builder()
+            .baseUrl("https://api.openweathermap.org/data/2.5/")
+            .addConverterFactory(GsonConverterFactory.create())
+            .build()
+
+        val weatherService = retrofit.create(WeatherService::class.java)
+
+        // Use the obtained latitude and longitude
+        val call = weatherService.getWeather(latitude, longitude, "c1fac2c531c4c592942693d386edc753")
+        Log.d("FetchWeather", "Latitude: $latitude, Longitude: $longitude")
+
+        call.enqueue(object : Callback<WeatherResponse> {
+            override fun onResponse(call: Call<WeatherResponse>, response: Response<WeatherResponse>) {
+                if (response.isSuccessful) {
+                    val weatherResponse = response.body()
+
+//                    // Save latitude and longitude
+//                    latitude = weatherResponse?.coord?.lat ?: 0.0
+//                    longitude = weatherResponse?.coord?.lon ?: 0.0
+
+                    fetchOpenMeteoHourlyForecast(latitude, longitude)
+
+                    updateUI(weatherResponse)
+                }
+            }
+
+            override fun onFailure(call: Call<WeatherResponse>, t: Throwable) {
+                // Handle failure
+            }
+        })
+    }
+
+    private fun fetchOpenMeteoHourlyForecast(latitude: Double, longitude: Double) {
+        val retrofit = Retrofit.Builder()
+            .baseUrl("https://api.open-meteo.com/v1/")  // Open Meteo API endpoint
+            .addConverterFactory(GsonConverterFactory.create())
+            .build()
+
+        val weatherService = retrofit.create(WeatherService::class.java)
+
+        // Fetch hourly forecast from Open Meteo API
+        Log.d("WeatherDebug1", "Latitude: ${latitude}, Longitude: ${longitude}")
+
+        val hourlyCall = weatherService.getOpenMeteoHourlyForecast(latitude, longitude, "temperature_2m", 1)
+
+        hourlyCall.enqueue(object : Callback<HourlyForecastResponse> {
+            override fun onResponse(
+                call: Call<HourlyForecastResponse>,
+                response: Response<HourlyForecastResponse>
+            ) {
+                if (response.isSuccessful) {
+                    val hourlyResponse = response.body()
+                    // Process and display Open Meteo hourly forecast data
+                    displayOpenMeteoHourlyForecast(hourlyResponse)
+                }
+            }
+
+            override fun onFailure(call: Call<HourlyForecastResponse>, t: Throwable) {
+                // Handle failure
+            }
+        })
+    }
+
+    private fun fetchOpenMeteoWeeklyForecast(latitude: Double, longitude: Double) {
+        val retrofit = Retrofit.Builder()
+            .baseUrl("https://api.open-meteo.com/v1/")
+            .addConverterFactory(GsonConverterFactory.create())
+            .build()
+
+        val weatherService = retrofit.create(WeatherService::class.java)
+
+        Log.d("WeatherDebug2", "Latitude: ${latitude}, Longitude: ${longitude}")
+
+        val weeklyCall = weatherService.getOpenMeteoWeeklyForecast(latitude, longitude)
+
+        weeklyCall.enqueue(object : Callback<WeeklyForecastResponse> {
+            override fun onResponse(
+                call: Call<WeeklyForecastResponse>,
+                response: Response<WeeklyForecastResponse>
+            ) {
+                if (response.isSuccessful) {
+                    val weeklyResponse = response.body()
+                    displayOpenMeteoWeeklyForecast(weeklyResponse)
+                }
+            }
+
+            override fun onFailure(call: Call<WeeklyForecastResponse>, t: Throwable) {
+                // Handle failure
+            }
+        })
+    }
+
+    private fun displayOpenMeteoWeeklyForecast(weeklyResponse: WeeklyForecastResponse?) {
+        if (weeklyResponse != null) {
+            val dateList = weeklyResponse.daily.time
+            val maxTempList = weeklyResponse.daily.temperature_2m_max
+            val minTempList = weeklyResponse.daily.temperature_2m_min
+
+            Log.d("WeatherDebug2Temp", "Date: ${dateList}, MaxTemp: ${maxTempList}, MainTemp: ${minTempList}")
+
+            val weeklyAdapter = WeeklyForecastAdapter(dateList, maxTempList, minTempList)
+
+            binding.weeklyForecastRecyclerView.layoutManager =
+                LinearLayoutManager(context, LinearLayoutManager.VERTICAL, false)
+            binding.weeklyForecastRecyclerView.adapter = weeklyAdapter
+        }
+    }
+
+    private fun displayOpenMeteoHourlyForecast(hourlyResponse: HourlyForecastResponse?) {
+        if (hourlyResponse != null) {
+            // Extract temperature data from the hourly object
+            val timeList = hourlyResponse.hourly.time
+            val temperatureList = hourlyResponse.hourly.temperature_2m
+
+            // Create RecyclerView adapter
+            val adapter = HourlyForecastAdapter(timeList, temperatureList)
+
+            // Attach the adapter to the RecyclerView
+            binding.hourlyForecastRecyclerView.layoutManager =
+                LinearLayoutManager(context, LinearLayoutManager.HORIZONTAL, false)
+            binding.hourlyForecastRecyclerView.adapter = adapter
+        }
+    }
+
+    private fun updateUI(weatherResponse: WeatherResponse?) {
+        if (weatherResponse != null) {
+            binding.cityNameTextView.text = weatherResponse.name
+
+            Log.d("WeatherDebug", "Latitude: ${latitude}, Longitude: ${longitude}")
+
+            // Convert temperature from Kelvin to Celsius
+            val temperatureCelsius = weatherResponse.main.temp - 273.15
+            binding.temperatureTextView.text = "${String.format("%.1f", temperatureCelsius)}°C"
+
+            binding.weatherConditionTextView.text = "Weather: ${weatherResponse.weather[0].description}"
+
+            // Convert temperatures from Kelvin to Celsius
+            val maxTempCelsius = weatherResponse.main.temp_max - 273.15
+            val minTempCelsius = weatherResponse.main.temp_min - 273.15
+            binding.highTempTextView.text = "High: ${String.format("%.1f", maxTempCelsius)}°C"
+            binding.lowTempTextView.text = "Low: ${String.format("%.1f", minTempCelsius)}°C"
+
+            // Convert feels like temperature from Kelvin to Celsius
+            val feelsLikeCelsius = weatherResponse.main.feels_like - 273.15
+            binding.feelsLikeTextView.text = "Feels like: ${String.format("%.1f", feelsLikeCelsius)}°C"
+
+            binding.humidityTextView.text = "Humidity: ${weatherResponse.main.humidity}%"
+            binding.pressureTextView.text = "Pressure: ${weatherResponse.main.pressure} hPa"
+            binding.windTextView.text = "Wind: ${weatherResponse.wind.speed} km/h"
+
+            binding.sunsetTextView.text = "Sunset: ${weatherResponse.sys.sunset}"
+            binding.sunriseTextView.text = "Sunrise: ${weatherResponse.sys.sunrise}"
+
+            val sunriseTime = calculateLocalTime(weatherResponse.sys.sunrise, weatherResponse.timezone)
+            val sunsetTime = calculateLocalTime(weatherResponse.sys.sunset, weatherResponse.timezone)
+
+            binding.sunriseTextView.text = "Sunrise: $sunriseTime"
+            binding.sunsetTextView.text = "Sunset: $sunsetTime"
+
+            // Load weather icon using Glide or any other image loading library
+            Glide.with(this)
+                .load("https://openweathermap.org/img/w/${weatherResponse.weather[0].icon}.png")
+                .into(binding.weatherIconImageView)
+        }
+    }
+
+    private fun calculateLocalTime(utcTime: Long, timezoneOffset: Int): String {
+        val utcMillis = utcTime * 1000L
+        val instant = Instant.ofEpochMilli(utcMillis)
+        val zoneId = ZoneId.ofOffset("GMT", ZoneOffset.ofTotalSeconds(timezoneOffset))
+
+        val localDateTime = LocalDateTime.ofInstant(instant, zoneId)
+        val formatter = DateTimeFormatter.ofPattern("hh:mm a")
+
+        return localDateTime.format(formatter)
+    }
+
+    fun changeLocationToSyracuse() {
+        val cityName = "Syracuse"
+        getLatLngFromCityName(cityName)
+    }
+}

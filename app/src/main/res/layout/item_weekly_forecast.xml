@@ -1,0 +1,38 @@
+<!-- item_weekly_forecast.xml -->
+<LinearLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:gravity="center"
+    android:layout_marginBottom="10dp"
+    android:background="@drawable/rounded_background"
+    android:orientation="horizontal"
+    android:padding="16dp">
+
+    <TextView
+        android:id="@+id/dateTextView"
+        android:layout_width="wrap_content"
+        android:text="Monday"
+        android:layout_marginEnd="70dp"
+        android:textColor="@color/black"
+        android:layout_height="wrap_content"
+        android:textSize="16sp"
+        android:textStyle="bold"/>
+
+    <TextView
+        android:id="@+id/maxTempTextView"
+        android:layout_width="wrap_content"
+        android:layout_marginEnd="10dp"
+        android:textColor="@color/black"
+        android:layout_height="wrap_content"
+        android:text="5°C"
+        android:textSize="14sp"/>
+
+    <TextView
+        android:id="@+id/minTempTextView"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:textColor="@color/black"
+        android:text="0°C"
+        android:textSize="14sp"/>
+</LinearLayout>

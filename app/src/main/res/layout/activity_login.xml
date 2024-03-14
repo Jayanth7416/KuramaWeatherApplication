@@ -1,0 +1,80 @@
+<!-- res/layout/activity_login.xml -->
+<LinearLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:orientation="vertical"
+    android:padding="16dp">
+
+    <!-- Username EditText -->
+    <EditText
+        android:id="@+id/editTextUsername"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginBottom="16dp"
+        android:paddingStart="8dp"
+        android:paddingEnd="8dp"
+        android:paddingTop="12dp"
+        android:paddingBottom="12dp"
+        android:background="@drawable/edit_text_bg"
+        android:drawableStart="@drawable/baseline_account_circle_24"
+        android:drawablePadding="8dp"
+        android:hint="Username"
+        android:inputType="text"
+        android:textColor="@android:color/black"/>
+
+    <!-- Password EditText with Toggle Button -->
+    <RelativeLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content">
+
+        <EditText
+            android:id="@+id/editTextPassword"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:background="@drawable/edit_text_bg"
+            android:drawableStart="@drawable/baseline_vpn_key_24"
+            android:drawablePadding="8dp"
+            android:hint="Password"
+            android:inputType="textPassword"
+            android:paddingStart="8dp"
+            android:paddingTop="12dp"
+            android:paddingEnd="8dp"
+            android:paddingBottom="12dp"
+            android:textColor="@android:color/black" />
+
+        <ImageButton
+            android:id="@+id/togglePassword"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:src="@drawable/baseline_visibility_off_24"
+            android:layout_alignParentEnd="true"
+            android:background="?android:attr/selectableItemBackground"
+            android:padding="8dp"
+            android:contentDescription="Toggle Password Visibility"/>
+
+    </RelativeLayout>
+
+    <!-- Login Button -->
+    <Button
+        android:id="@+id/buttonLogin"
+        android:layout_width="175dp"
+        android:layout_gravity="center"
+        android:layout_height="wrap_content"
+        android:background="@drawable/button_bg"
+        android:textColor="@android:color/white"
+        android:layout_marginTop="20dp"
+        android:layout_marginBottom="10dp"
+        android:text="Login"/>
+
+    <!-- Register Button -->
+    <Button
+        android:id="@+id/buttonRegister"
+        android:layout_gravity="center"
+        android:layout_width="175dp"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="10dp"
+        android:background="@drawable/button_bg"
+        android:textColor="@android:color/white"
+        android:text="Register"/>
+</LinearLayout>

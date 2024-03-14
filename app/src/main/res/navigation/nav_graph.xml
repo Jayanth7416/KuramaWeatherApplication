@@ -1,0 +1,7 @@
+<fragment
+    android:id="@+id/nav_home"
+    android:name="com.example.trail2weather.ui.home.HomeFragment"
+    android:label="@string/menu_home"
+    tools:layout="@layout/fragment_home"
+    xmlns:tools="http://schemas.android.com/tools"
+    xmlns:android="http://schemas.android.com/apk/res/android" />

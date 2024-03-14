@@ -1,0 +1,30 @@
+<!-- res/layout/broken_internet.xml -->
+<LinearLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:gravity="center"
+    android:orientation="vertical">
+
+    <ImageView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:src="@drawable/ic_humidity"
+        android:contentDescription="@string/broken_connection_description"/>
+
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="@string/broken_connection_message"
+        android:textSize="16sp"
+        android:gravity="center"
+        android:paddingTop="16dp"/>
+
+    <!-- Refresh button -->
+    <Button
+        android:layout_marginTop="20dp"
+        android:id="@+id/refreshButton"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="@string/refresh"/>
+</LinearLayout>

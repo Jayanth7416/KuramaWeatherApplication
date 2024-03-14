@@ -1,0 +1,26 @@
+<LinearLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="wrap_content"
+    android:layout_height="wrap_content"
+    android:orientation="vertical"
+    android:gravity="center"
+    android:background="@drawable/rounded_background"
+    android:layout_marginEnd="10dp"
+    android:padding="8dp">
+
+    <TextView
+        android:id="@+id/timeTextView"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Time"
+        android:textSize="16sp"
+        android:textColor="@color/black"/> <!-- Set desired text color -->
+
+    <TextView
+        android:id="@+id/temperatureTextView"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="0°C"
+        android:textSize="16sp"
+        android:textColor="@color/black"/> <!-- Set desired text color -->
+</LinearLayout>

@@ -1,0 +1,12 @@
+<!-- res/values/styles.xml -->
+<resources>
+    <style name="PopupMenuStyle" parent="@android:style/Widget.PopupMenu">
+        <item name="android:popupBackground">@drawable/popup_background</item>
+        <item name="android:textColor">@color/popupTextColor</item>
+    </style>
+    <style name="FullScreenDialog" parent="Theme.AppCompat.Dialog">
+        <item name="android:windowIsFloating">false</item>
+        <item name="android:windowBackground">@android:color/transparent</item>
+    </style>
+
+</resources>
